@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "path": "https://deno.land/std@0.143.0/path/mod.ts",
+    "alosaur": "https://deno.land/x/alosaur@v0.33.0/mod.ts",
+    "nanoid": "https://deno.land/x/nanoid@v3.0.0/mod.ts",
+    "types": "./src/types.ts",
+    "helpers": "./src/helpers/index.ts",
+    "db": "./src/db/index.ts"
+  }
+}

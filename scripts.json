@@ -1,0 +1,15 @@
+{
+  "$schema": "https://deno.land/x/denon@2.5.0/schema.json",
+  "scripts": {
+    "start": {
+      "cmd": "deno run --allow-all --import-map=importMap.json src/app.ts",
+      "desc": "run my app.ts file",
+      "env": {
+        "MODE": "dev"
+      }
+    }
+  },
+  "watcher": {
+    "exts": ["js", "jsx", "ts", "tsx"]
+  }
+}

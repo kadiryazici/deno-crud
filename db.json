@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "creationDate": 1655670925205,
+      "id": "YkwjpP7csECATG2ty6-7-",
+      "password": "tiktok_consultant",
+      "username": "serseriboy"
+    },
+    {
+      "creationDate": 1655670971199,
+      "id": "NZXYdUm7Z87MePXc9KGvb",
+      "password": "tiktok_consultant",
+      "username": "serseriboy123"
+    }
+  ],
+  "comments": [],
+  "questions": [],
+  "userRefreshTokens": []
+}
