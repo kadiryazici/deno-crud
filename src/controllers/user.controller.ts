@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseHook, Ctx, HttpContext } from 'alosaur';
+import { Controller, Post, Body, UseHook } from 'alosaur';
 import { SuccessCodes } from '@/common/constants.ts';
 import { SuccessResponse, TransformValue } from 'types';
 import { saveDb } from 'db';
@@ -25,7 +25,7 @@ class UserDTO {
 export class UserController {
   @Post('/signup')
   @UseHook(MyHook, UserDTO)
-  async signup(@Body(UserDTO) body: UserDTO, @Ctx() ctx: HttpContext): Promise<SuccessResponse> {
+  async signup(@Body(UserDTO) body: UserDTO): Promise<SuccessResponse> {
     const now = getUTCNow();
 
     await saveDb((db) =>
