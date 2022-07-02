@@ -6,13 +6,13 @@ import { getUTCNow } from 'helpers';
 import { nanoid } from 'nanoid';
 import { MinLength, MaxLength, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { MyHook } from '@/hooks/validate.ts';
+import { Validate } from '@/hooks/validate.ts';
 
-class UserDTO {
+class UserModel {
   @MinLength(4)
   @MaxLength(6)
   @IsString()
-  @Transform(({ value }: TransformValue<string>) => value.replaceAll(' ', ''))
+  @Transform(({ value }: TransformValue<string>) => value.replace(/\s/g, ''))
   username!: string;
 
   @MinLength(6)
@@ -24,8 +24,8 @@ class UserDTO {
 @Controller('/user')
 export class UserController {
   @Post('/signup')
-  @UseHook(MyHook, UserDTO)
-  async signup(@Body(UserDTO) body: UserDTO): Promise<SuccessResponse> {
+  @UseHook(Validate, UserModel)
+  async signup(@Body(UserModel) body: UserModel): Promise<SuccessResponse> {
     const now = getUTCNow();
 
     await saveDb((db) =>
