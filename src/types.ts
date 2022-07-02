@@ -1,10 +1,6 @@
-export enum SuccessCodes {
-  SignupSuccessful = 'SignupSuccessful',
-}
+import { type ErrorCodes, type SuccessCodes } from './common/constants.ts';
 
-export enum ErrorCodes {
-  SignupError = 'SignupError',
-}
+export type TransformValue<T> = { value: T };
 
 export interface User {
   id: string;
@@ -45,4 +41,5 @@ export interface SuccessResponse {
 export interface ErrorResponse {
   success: false;
   code: ErrorCodes;
+  errors: unknown[];
 }
