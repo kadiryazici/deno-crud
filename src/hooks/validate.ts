@@ -6,7 +6,7 @@ import { HttpStatusCode } from '@/common/httpCode.ts';
 import { transformBodyOfContext } from '@/helpers/index.ts';
 
 // deno-lint-ignore no-explicit-any
-export class MyHook implements HookTarget<unknown, any> {
+export class Validate implements HookTarget<unknown, any> {
   // deno-lint-ignore no-explicit-any
   async onPreAction(context: HttpContext<unknown>, instance: any) {
     const transformedBody = await transformBodyOfContext(context, instance);
