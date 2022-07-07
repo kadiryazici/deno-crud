@@ -21,3 +21,5 @@ dist-pages
 *.njsproj
 *.sln
 *.sw?
+
+db.json

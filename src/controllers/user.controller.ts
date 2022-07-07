@@ -1,22 +1,21 @@
-import { Controller, Post, Body, UseHook } from 'alosaur';
-import { SuccessCodes } from '@/common/constants.ts';
-import { SuccessResponse, TransformValue } from 'types';
-import { saveDb } from 'db';
-import { getUTCNow } from 'helpers';
+import { Controller, Post, Body, UseHook, Content, ActionResult } from 'alosaur';
+import { ErrorCodes, SuccessCodes } from '@/common/constants.ts';
+import { SuccessResponse, TransformValue, ErrorResponse } from 'types';
+import { saveDb, useDb } from 'db';
+import { getUTCNow, getFixedUsername } from 'helpers';
 import { nanoid } from 'nanoid';
-import { MinLength, MaxLength, IsString } from 'class-validator';
+import { Length, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Validate } from '@/hooks/validate.ts';
+import { HttpStatusCode } from '@/common/httpCode.ts';
 
 class UserModel {
-  @MinLength(4)
-  @MaxLength(6)
+  @Length(4, 24)
   @IsString()
-  @Transform(({ value }: TransformValue<string>) => value.replace(/\s/g, ''))
+  @Transform(({ value }: TransformValue<string>) => getFixedUsername(value))
   username!: string;
 
-  @MinLength(6)
-  @MaxLength(25)
+  @Length(6, 25)
   @IsString()
   password!: string;
 }
@@ -25,7 +24,22 @@ class UserModel {
 export class UserController {
   @Post('/signup')
   @UseHook(Validate, UserModel)
-  async signup(@Body(UserModel) body: UserModel): Promise<SuccessResponse> {
+  async signup(@Body(UserModel) body: UserModel): Promise<ActionResult> {
+    {
+      const db = useDb();
+      const foundUser = db.users.find((user) => user.username === body.username);
+      if (foundUser) {
+        return Content(
+          {
+            code: ErrorCodes.UserAlreadyExists,
+            errors: [],
+            success: false,
+          } as ErrorResponse,
+          HttpStatusCode.CONFLICT,
+        );
+      }
+    }
+
     const now = getUTCNow();
 
     await saveDb((db) =>
@@ -37,9 +51,12 @@ export class UserController {
       }),
     );
 
-    return {
-      success: true,
-      code: SuccessCodes.SignupSuccessful,
-    };
+    return Content(
+      {
+        success: true,
+        code: SuccessCodes.SignupSuccessful,
+      } as SuccessResponse,
+      HttpStatusCode.OK,
+    );
   }
 }
