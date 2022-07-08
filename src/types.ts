@@ -10,7 +10,7 @@ export interface User {
 }
 
 export interface UserRefreshToken {
-  id: string;
+  userId: string;
   token: string;
 }
 

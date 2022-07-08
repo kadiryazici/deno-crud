@@ -95,11 +95,20 @@ export class UserController {
 
     const user = foundUser.unwrap();
 
-    return Content(<LoginResponse>{
+    const responseData: LoginResponse = {
       accessToken: await this.userService.createUserAccessToken(user.id),
       refreshToken: await this.userService.createUserRefreshToken(user.id),
       id: user.id,
       username: user.username,
+    };
+
+    await this.db.setAndSave((db) => {
+      db.userRefreshTokens.push({
+        userId: user.id,
+        token: responseData.refreshToken,
+      });
     });
+
+    return Content(responseData);
   }
 }
