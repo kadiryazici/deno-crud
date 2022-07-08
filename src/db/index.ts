@@ -1,13 +1,15 @@
 import * as path from 'path';
-import { getRoot } from '../helpers/getRoot.ts';
+
 import { Comment, Question, User, UserRefreshToken } from 'types';
+
+import { getRoot } from '../helpers/getRoot.ts';
 
 const root = getRoot();
 
 // deno-lint-ignore no-explicit-any
 let currentDB = null as any;
 
-interface Db {
+export interface Db {
   users: User[];
   comments: Comment[];
   questions: Question[];
@@ -54,4 +56,8 @@ export async function saveDb(cb?: (db: Db) => Promise<unknown> | unknown) {
   if (cb) await Promise.resolve(cb(currentDB));
 
   await Deno.writeTextFile(path.join(root, 'db.json'), JSON.stringify(getFixedDb(currentDB), null, 2));
+}
+
+export function setWithoutSave<Callback extends (db: Db) => Promise<void> | void>(cb: Callback): ReturnType<Callback> {
+  return cb(currentDB) as ReturnType<Callback>;
 }
