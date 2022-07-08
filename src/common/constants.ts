@@ -7,6 +7,8 @@ export enum ErrorCodes {
   ValidationError = 'ValidationError',
   UserAlreadyExists = 'UserAlreadyExists',
   WrongUsernameOrPassword = 'WrongUsernameOrPassword',
+  InvalidAccessToken = 'InvalidAccessToken',
+  MissingAccessToken = 'MissingAccessToken',
 }
 
 export const allowedUsernameCharacters = 'abcdefghijklmnopqrstuwxyz1234567890 ';

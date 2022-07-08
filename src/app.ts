@@ -1,5 +1,6 @@
 import { App, Area } from 'alosaur';
 
+import { QuestionController } from './controllers/question.controller.ts';
 import { UserController } from './controllers/user.controller.ts';
 import { initDB } from './db/index.ts';
 import { plainToInstance } from 'class-transformer';
@@ -7,7 +8,7 @@ import { plainToInstance } from 'class-transformer';
 initDB();
 
 @Area({
-  controllers: [UserController],
+  controllers: [UserController, QuestionController],
 })
 class MainArea {}
 
