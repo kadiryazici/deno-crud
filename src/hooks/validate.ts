@@ -4,7 +4,7 @@ import { ErrorResponse } from 'types';
 import { ErrorCodes } from '@/common/constants.ts';
 import { HttpStatusCode } from '@/common/httpCode.ts';
 import { plainToInstance } from 'class-transformer';
-import { resultifyAsync } from 'helpers';
+import { resultFromCb } from 'helpers';
 import { type Result } from 'oxide.ts';
 interface Payload {
   // deno-lint-ignore no-explicit-any
@@ -19,7 +19,7 @@ export class Validate implements HookTarget<unknown, Payload> {
       body = plainToInstance(instance, body);
     }
 
-    const valid: Result<void, ValidationError[]> = await resultifyAsync(() => validateOrReject(body));
+    const valid: Result<unknown, ValidationError[]> = await resultFromCb(() => validateOrReject(body));
 
     if (valid.isErr()) {
       const errors = valid.unwrapErr();
