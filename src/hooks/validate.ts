@@ -1,10 +1,11 @@
 import { HttpContext, type HookTarget, Content } from 'alosaur';
-import { validateOrReject } from 'class-validator';
+import { validateOrReject, ValidationError } from 'class-validator';
 import { ErrorResponse } from 'types';
 import { ErrorCodes } from '@/common/constants.ts';
 import { HttpStatusCode } from '@/common/httpCode.ts';
 import { plainToInstance } from 'class-transformer';
-
+import { resultifyAsync } from 'helpers';
+import { type Result } from 'oxide.ts';
 interface Payload {
   // deno-lint-ignore no-explicit-any
   instance: any;
@@ -18,9 +19,11 @@ export class Validate implements HookTarget<unknown, Payload> {
       body = plainToInstance(instance, body);
     }
 
-    try {
-      await validateOrReject(body);
-    } catch (errors) {
+    const valid: Result<void, ValidationError[]> = await resultifyAsync(() => validateOrReject(body));
+
+    if (valid.isErr()) {
+      const errors = valid.unwrapErr();
+
       context.response.result = Content(
         {
           success: false,
@@ -29,6 +32,7 @@ export class Validate implements HookTarget<unknown, Payload> {
         } as ErrorResponse,
         HttpStatusCode.BAD_REQUEST,
       );
+
       context.response.setImmediately();
     }
   }
