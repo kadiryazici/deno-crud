@@ -2,5 +2,13 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
+  },
+  "tasks": {
+    "bundle": "deno bundle --import-map=importMap.json ./src/app.ts bundle.js",
+    "compile:mac:m": "deno compile --allow-all --output appMacM --target aarch64-apple-darwin ./bundle.js",
+    "compile:mac:intel": "deno compile --allow-all --output appMacIntel --target x86_64-apple-darwin ./bundle.js",
+    "compile:windows": "deno compile --allow-all --output appMacM --target x86_64-pc-windows-msvc ./bundle.js",
+    "compile:linux": "deno compile --allow-all --output appLinuxGNU --target x86_64-unknown-linux-gnu ./bundle.js",
+    "compile:all": "deno task bundle && deno task compile:mac:m && deno task compile:mac:intel && deno task compile:windows && deno task compile:linux"
   }
 }

@@ -23,3 +23,8 @@ dist-pages
 *.sw?
 
 db.json
+appLinuxGNU
+appMacIntel
+appMacM
+appMacM.exe
+bundle.js
