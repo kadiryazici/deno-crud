@@ -3,16 +3,23 @@ import { validateOrReject } from 'class-validator';
 import { ErrorResponse } from 'types';
 import { ErrorCodes } from '@/common/constants.ts';
 import { HttpStatusCode } from '@/common/httpCode.ts';
-import { transformBodyOfContext } from '@/helpers/index.ts';
+import { plainToInstance } from 'class-transformer';
 
-// deno-lint-ignore no-explicit-any
-export class Validate implements HookTarget<unknown, any> {
+interface Payload {
   // deno-lint-ignore no-explicit-any
-  async onPreAction(context: HttpContext<unknown>, instance: any) {
-    const transformedBody = await transformBodyOfContext(context, instance);
+  instance: any;
+  transform?: boolean;
+}
+export class Validate implements HookTarget<unknown, Payload> {
+  async onPreAction(context: HttpContext<unknown>, { instance, transform = true }: Payload) {
+    let body = await context.request.body();
+
+    if (transform) {
+      body = plainToInstance(instance, body);
+    }
 
     try {
-      await validateOrReject(transformedBody);
+      await validateOrReject(body);
     } catch (errors) {
       context.response.result = Content(
         {

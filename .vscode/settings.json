@@ -3,5 +3,6 @@
   "deno.lint": true,
   "deno.unstable": false,
   "deno.importMap": "./importMap.json",
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "deno.config": "./deno.json"
 }

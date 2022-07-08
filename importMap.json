@@ -5,6 +5,7 @@
     "nanoid": "https://deno.land/x/nanoid@v3.0.0/mod.ts",
     "class-validator": "https://cdn.skypack.dev/class-validator?dts",
     "class-transformer": "https://cdn.skypack.dev/class-transformer?dts",
+    "djwt": "https://deno.land/x/djwt@v2.2/mod.ts",
     "types": "./src/types.ts",
     "helpers": "./src/helpers/index.ts",
     "db": "./src/db/index.ts",
