@@ -43,3 +43,10 @@ export interface ErrorResponse {
   code: ErrorCodes;
   errors: unknown[];
 }
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  id: string;
+  username: string;
+}

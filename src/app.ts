@@ -18,6 +18,7 @@ app.useTransform({
   type: 'body',
   // deno-lint-ignore no-explicit-any
   getTransform: (transform: any, body: any) => {
+    if (transform == null) return body;
     return plainToInstance(transform, body);
   },
 });
