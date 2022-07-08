@@ -1,4 +1,5 @@
 import { type ErrorCodes, type SuccessCodes } from './common/constants.ts';
+import { Payload } from 'djwt';
 
 export type TransformValue<T> = { value: T };
 
@@ -49,4 +50,8 @@ export interface LoginResponse {
   refreshToken: string;
   id: string;
   username: string;
+}
+
+export interface TokenPayload extends Payload {
+  id: string;
 }
