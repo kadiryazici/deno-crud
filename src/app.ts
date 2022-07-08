@@ -1,6 +1,7 @@
 import { App, Area } from 'alosaur';
-import { initDB } from './db/index.ts';
+
 import { UserController } from './controllers/user.controller.ts';
+import { initDB } from './db/index.ts';
 import { plainToInstance } from 'class-transformer';
 
 initDB();
