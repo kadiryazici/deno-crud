@@ -18,6 +18,17 @@ export class DatabaseService {
   private static saveTimeout = -1;
   private static root = getRoot();
 
+  private static saveFile() {
+    clearTimeout(DatabaseService.saveTimeout);
+
+    DatabaseService.saveTimeout = setTimeout(() => {
+      Deno.writeTextFileSync(
+        path.join(DatabaseService.root, 'db.json'),
+        JSON.stringify(DatabaseService.current, null, 2),
+      );
+    });
+  }
+
   private static getFixed(db: IDatabase) {
     const requiredDb = { ...db } as IDatabase;
 
@@ -56,12 +67,12 @@ export class DatabaseService {
       if (cbReturn instanceof Promise) {
         // @ts-expect-error promise detection
         return cbReturn.then(() => {
-          this.saveFileTimeout();
+          DatabaseService.saveFile();
         });
       }
     }
 
-    this.saveFileTimeout();
+    DatabaseService.saveFile();
   }
 
   // @ts-expect-error promise thing
@@ -71,16 +82,5 @@ export class DatabaseService {
       // @ts-expect-error promise detection
       return new Promise((resolve) => cbReturn.then(() => resolve()));
     }
-  }
-
-  private saveFileTimeout() {
-    clearTimeout(DatabaseService.saveTimeout);
-
-    DatabaseService.saveTimeout = setTimeout(() => {
-      Deno.writeTextFileSync(
-        path.join(DatabaseService.root, 'db.json'),
-        JSON.stringify(DatabaseService.current, null, 2),
-      );
-    });
   }
 }
