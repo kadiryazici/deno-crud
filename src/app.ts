@@ -1,14 +1,14 @@
 import { App, Area } from 'alosaur';
 
+import { DatabaseService } from '@/services/database.service.ts';
 import { QuestionController } from './controllers/question.controller.ts';
 import { UserController } from './controllers/user.controller.ts';
 import { appConfig } from '@/common/constants.ts';
-import { initDB } from './db/index.ts';
 import { plainToInstance } from 'class-transformer';
 import setupConfig from '@/setups/setupConfig.ts';
 import setupRefreshTokenControl from '@/setups/setupRefreshTokenControl.ts';
 
-initDB();
+DatabaseService.init();
 setupConfig();
 setupRefreshTokenControl();
 

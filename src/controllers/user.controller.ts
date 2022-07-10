@@ -51,7 +51,7 @@ export class UserController {
 
   @Post('/signup')
   @UseHook(Validate, { instance: SignupBodyModel })
-  public async signup(@Body(SignupBodyModel) body: AuthBody): Promise<ActionResult> {
+  public signup(@Body(SignupBodyModel) body: AuthBody): ActionResult {
     if (this.userService.getUserByValue('username', body.username).isSome()) {
       return Content(
         {
@@ -65,7 +65,7 @@ export class UserController {
 
     const now = getUTCNow();
 
-    await this.db.setAndSave((db) => {
+    this.db.save((db) => {
       db.users.push({
         creationDate: now,
         id: nanoid(),
@@ -108,7 +108,7 @@ export class UserController {
       username: user.username,
     };
 
-    await this.db.setAndSave((db) => {
+    this.db.save((db) => {
       db.userRefreshTokens.push({
         userId: user.id,
         token: responseData.refreshToken,
@@ -121,7 +121,7 @@ export class UserController {
   @Post('/refresh')
   @UseHook(Validate, { instance: RefreshBodyModel, transform: false })
   public async refreshUserToken(@Body(RefreshBodyModel) body: RefreshBodyModel): Promise<ActionResult> {
-    if (!this.db.data().userRefreshTokens.some((refresh) => refresh.token === body.token)) {
+    if (!this.db.value().userRefreshTokens.some((refresh) => refresh.token === body.token)) {
       return Content(
         {
           code: ErrorCodes.InvalidToken,
@@ -147,7 +147,7 @@ export class UserController {
 
     const tokenPayload = tokenResult.unwrap();
 
-    this.db.setAndSave((db) => {
+    this.db.save((db) => {
       if (db.userRefreshTokens.length === 1) {
         db.userRefreshTokens.length = 0;
       } else {
@@ -164,7 +164,7 @@ export class UserController {
       refreshToken: await this.userService.createUserRefreshToken(tokenPayload.id),
     };
 
-    this.db.setAndSave((db) => {
+    this.db.save((db) => {
       db.userRefreshTokens.push({
         userId: tokenPayload.id,
         token: responsePayload.refreshToken,

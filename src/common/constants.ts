@@ -24,3 +24,5 @@ export const appConfig: AppConfig = Object.preventExtensions({
   refreshTokenSecret:
     'adfjnafısgnfıepgnarfgRQT^4tverwgcaw34543564567567yHVSsdadfertryu536EDFgvqeryertubdrtghSVDFgFDgvfdgsd',
 });
+
+export const NOOP = () => {};

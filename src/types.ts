@@ -71,3 +71,10 @@ export interface RefreshResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface IDatabase {
+  users: User[];
+  comments: Comment[];
+  questions: Question[];
+  userRefreshTokens: UserRefreshToken[];
+}
