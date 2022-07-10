@@ -6,9 +6,11 @@ import { appConfig } from '@/common/constants.ts';
 import { initDB } from './db/index.ts';
 import { plainToInstance } from 'class-transformer';
 import setupConfig from '@/setups/setupConfig.ts';
+import setupRefreshTokenControl from '@/setups/setupRefreshTokenControl.ts';
 
 initDB();
 setupConfig();
+setupRefreshTokenControl();
 
 @Area({
   controllers: [UserController, QuestionController],

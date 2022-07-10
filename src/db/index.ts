@@ -52,9 +52,10 @@ export function useDb() {
 let saveTimeoutId = -1;
 
 export async function saveDb(cb?: (db: Db) => Promise<void> | void) {
+  clearTimeout(saveTimeoutId);
+
   if (cb) await Promise.resolve(cb(currentDB));
 
-  clearTimeout(saveTimeoutId);
   saveTimeoutId = setTimeout(() => {
     Deno.writeTextFile(path.join(root, 'db.json'), JSON.stringify(getFixedDb(currentDB), null, 2));
   });

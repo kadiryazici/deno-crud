@@ -7,6 +7,7 @@
     "class-transformer": "https://cdn.skypack.dev/class-transformer@0.5.1?dts",
     "djwt": "https://deno.land/x/djwt@v2.2/mod.ts",
     "oxide.ts": "https://cdn.skypack.dev/oxide.ts@1.0.0?dts",
+    "deno-cron": "https://deno.land/x/deno_cron@v1.0.0/cron.ts",
     "types": "./src/types.ts",
     "helpers": "./src/helpers/index.ts",
     "db": "./src/db/index.ts",
