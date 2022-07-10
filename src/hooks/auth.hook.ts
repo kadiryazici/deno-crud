@@ -22,7 +22,7 @@ export class Auth implements HookTarget<AuthHookState, unknown> {
     if (tokenOption.isNone()) {
       context.response.result = Content(
         {
-          code: ErrorCodes.MissingAccessToken,
+          code: ErrorCodes.MissingToken,
           errors: [],
           success: false,
         } as ErrorResponse,

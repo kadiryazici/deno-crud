@@ -63,3 +63,11 @@ export interface AppConfig {
   accessTokenExpireTime: number; // second
   refreshTokenExpireTime: number; // second
 }
+
+export interface RefreshPayload {
+  token: string;
+}
+export interface RefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+}
