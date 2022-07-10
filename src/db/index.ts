@@ -2,6 +2,7 @@ import * as path from 'path';
 
 import { Comment, Question, User, UserRefreshToken } from 'types';
 
+import { fileExistsSync } from 'helpers';
 import { getRoot } from '../helpers/getRoot.ts';
 
 const root = getRoot();
@@ -35,11 +36,7 @@ function getFixedDb(db: Partial<Db> = {}) {
 }
 
 export function initDB() {
-  try {
-    Deno.statSync(path.join(root, 'db.json'));
-  } catch (error) {
-    if (!(error instanceof Deno.errors.NotFound)) throw new Error('Note founde');
-
+  if (!fileExistsSync(path.join(root, 'db.json'))) {
     Deno.writeTextFileSync(path.join(root, 'db.json'), JSON.stringify(getFixedDb(), null, 2));
   }
 

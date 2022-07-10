@@ -1,10 +1,5 @@
 import { Option, Result, Ok, Err } from 'oxide.ts';
-import {
-  accessTokenExpirationTime,
-  accessTokenSecret,
-  refreshTokenExpirationTime,
-  refreshTokenSecret,
-} from '@/common/constants.ts';
+import { appConfig } from '@/common/constants.ts';
 import { create, getNumericDate, verify } from 'djwt';
 
 import { User, TokenPayload } from 'types';
@@ -19,9 +14,9 @@ export class UserService {
       { alg: 'HS256', typ: 'JWT' },
       <TokenPayload>{
         id,
-        exp: getNumericDate(accessTokenExpirationTime),
+        exp: getNumericDate(appConfig.accessTokenExpireTime),
       },
-      accessTokenSecret,
+      appConfig.accessTokenSecret,
     );
   }
 
@@ -29,7 +24,7 @@ export class UserService {
     try {
       const payload = (await verify(
         token.slice(this.tokenStart.length), //
-        accessTokenSecret,
+        appConfig.accessTokenSecret,
         'HS256',
       )) as TokenPayload;
       return Ok(payload);
@@ -43,9 +38,9 @@ export class UserService {
       { alg: 'HS256', typ: 'JWT' },
       <TokenPayload>{
         id,
-        exp: getNumericDate(refreshTokenExpirationTime),
+        exp: getNumericDate(appConfig.refreshTokenExpireTime),
       },
-      refreshTokenSecret,
+      appConfig.refreshTokenSecret,
     );
   }
 
