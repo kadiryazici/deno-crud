@@ -3,11 +3,15 @@ import { appConfig } from '@/common/constants.ts';
 import { create, getNumericDate, verify } from 'djwt';
 
 import { User, TokenPayload } from 'types';
-import { useDb } from '../db/index.ts';
 import { ErrorCodes } from '@/common/constants.ts';
+import { DatabaseService } from './database.service.ts';
+import { AutoInjectable } from 'alosaur';
 
+@AutoInjectable()
 export class UserService {
   private tokenStart = 'Bearer ';
+
+  constructor(private db?: DatabaseService) {}
 
   public createUserAccessToken(id: string): Promise<string> {
     return create(
@@ -58,7 +62,6 @@ export class UserService {
   }
 
   public getUserByValue<Key extends keyof User>(key: Key, value: User[Key]): Option<User> {
-    const db = useDb();
-    return Option(db.users.find((user) => user[key] === value));
+    return Option(this.db?.value().users.find((user) => user[key] === value));
   }
 }
