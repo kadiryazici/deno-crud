@@ -26,5 +26,6 @@ db.json
 appLinuxGNU
 appMacIntel
 appMacM
-appMacM.exe
+appWindows
 bundle.js
+config.json

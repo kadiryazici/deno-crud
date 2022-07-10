@@ -55,3 +55,11 @@ export interface LoginResponse {
 export interface TokenPayload extends Payload {
   id: string;
 }
+
+export interface AppConfig {
+  port: number;
+  accessTokenSecret: string;
+  refreshTokenSecret: string;
+  accessTokenExpireTime: number; // second
+  refreshTokenExpireTime: number; // second
+}

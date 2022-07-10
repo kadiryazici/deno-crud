@@ -2,10 +2,13 @@ import { App, Area } from 'alosaur';
 
 import { QuestionController } from './controllers/question.controller.ts';
 import { UserController } from './controllers/user.controller.ts';
+import { appConfig } from '@/common/constants.ts';
 import { initDB } from './db/index.ts';
 import { plainToInstance } from 'class-transformer';
+import setupConfig from '@/setups/setupConfig.ts';
 
 initDB();
+setupConfig();
 
 @Area({
   controllers: [UserController, QuestionController],
@@ -25,4 +28,6 @@ app.useTransform({
   },
 });
 
-app.listen(':4000');
+app.listen({
+  port: appConfig.port,
+});
