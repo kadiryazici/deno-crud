@@ -49,10 +49,15 @@ export function useDb() {
   return currentDB as Db;
 }
 
-export async function saveDb(cb?: (db: Db) => Promise<unknown> | unknown) {
+let saveTimeoutId = -1;
+
+export async function saveDb(cb?: (db: Db) => Promise<void> | void) {
   if (cb) await Promise.resolve(cb(currentDB));
 
-  await Deno.writeTextFile(path.join(root, 'db.json'), JSON.stringify(getFixedDb(currentDB), null, 2));
+  clearTimeout(saveTimeoutId);
+  saveTimeoutId = setTimeout(() => {
+    Deno.writeTextFile(path.join(root, 'db.json'), JSON.stringify(getFixedDb(currentDB), null, 2));
+  });
 }
 
 export function setWithoutSave<Callback extends (db: Db) => Promise<void> | void>(cb: Callback): ReturnType<Callback> {

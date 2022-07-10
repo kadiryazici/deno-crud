@@ -20,7 +20,7 @@ export class UserService {
     );
   }
 
-  public async verifyUserAccessToken(token: string): Promise<Result<TokenPayload, ErrorCodes.InvalidAccessToken>> {
+  public async verifyUserAccessToken(token: string): Promise<Result<TokenPayload, ErrorCodes.InvalidToken>> {
     try {
       const payload = (await verify(
         token.slice(this.tokenStart.length), //
@@ -29,7 +29,7 @@ export class UserService {
       )) as TokenPayload;
       return Ok(payload);
     } catch {
-      return Err(ErrorCodes.InvalidAccessToken);
+      return Err(ErrorCodes.InvalidToken);
     }
   }
 
@@ -44,8 +44,21 @@ export class UserService {
     );
   }
 
-  public getUserByUsername(username: string): Option<User> {
+  public async verifyUserRefreshToken(token: string): Promise<Result<TokenPayload, ErrorCodes.InvalidToken>> {
+    try {
+      const payload = (await verify(
+        token, //
+        appConfig.refreshTokenSecret,
+        'HS256',
+      )) as TokenPayload;
+      return Ok(payload);
+    } catch {
+      return Err(ErrorCodes.InvalidToken);
+    }
+  }
+
+  public getUserByValue<Key extends keyof User>(key: Key, value: User[Key]): Option<User> {
     const db = useDb();
-    return Option(db.users.find((user) => user.username === username));
+    return Option(db.users.find((user) => user[key] === value));
   }
 }

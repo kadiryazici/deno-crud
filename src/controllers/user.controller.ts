@@ -1,9 +1,9 @@
 import { Controller, Post, Body, UseHook, Content, ActionResult } from 'alosaur';
 import { ErrorCodes, SuccessCodes } from '@/common/constants.ts';
-import { SuccessResponse, TransformValue, ErrorResponse, LoginResponse } from 'types';
+import { SuccessResponse, TransformValue, ErrorResponse, LoginResponse, RefreshResponse, RefreshPayload } from 'types';
 import { getUTCNow, getFixedUsername } from 'helpers';
 import { nanoid } from 'nanoid';
-import { Length, IsString } from 'class-validator';
+import { Length, IsString, IsJWT } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Validate } from '@/hooks/validate.ts';
 import { HttpStatusCode } from '@/common/httpCode.ts';
@@ -36,6 +36,12 @@ class LoginBodyModel implements AuthBody {
   public password!: string;
 }
 
+class RefreshBodyModel implements RefreshPayload {
+  @IsString()
+  @IsJWT()
+  token!: string;
+}
+
 @Controller('/user')
 export class UserController {
   constructor(
@@ -46,7 +52,7 @@ export class UserController {
   @Post('/signup')
   @UseHook(Validate, { instance: SignupBodyModel })
   public async signup(@Body(SignupBodyModel) body: AuthBody): Promise<ActionResult> {
-    if (this.userService.getUserByUsername(body.username).isSome()) {
+    if (this.userService.getUserByValue('username', body.username).isSome()) {
       return Content(
         {
           code: ErrorCodes.UserAlreadyExists,
@@ -80,7 +86,7 @@ export class UserController {
   @Post('/login')
   @UseHook(Validate, { instance: LoginBodyModel, transform: false })
   public async login(@Body() body: AuthBody): Promise<ActionResult> {
-    const foundUser = this.userService.getUserByUsername(body.username);
+    const foundUser = this.userService.getUserByValue('username', body.username);
 
     if (foundUser.isNone()) {
       return Content(
@@ -110,5 +116,61 @@ export class UserController {
     });
 
     return Content(responseData);
+  }
+
+  @Post('/refresh')
+  @UseHook(Validate, { instance: RefreshBodyModel, transform: false })
+  public async refreshUserToken(@Body(RefreshBodyModel) body: RefreshBodyModel): Promise<ActionResult> {
+    if (!this.db.data().userRefreshTokens.some((refresh) => refresh.token === body.token)) {
+      return Content(
+        {
+          code: ErrorCodes.InvalidToken,
+          errors: [],
+          success: false,
+        } as ErrorResponse,
+        HttpStatusCode.BAD_REQUEST,
+      );
+    }
+
+    const tokenResult = await this.userService.verifyUserRefreshToken(body.token);
+
+    if (tokenResult.isErr()) {
+      return Content(
+        {
+          code: tokenResult.unwrapErr(),
+          errors: [],
+          success: false,
+        } as ErrorResponse,
+        HttpStatusCode.BAD_REQUEST,
+      );
+    }
+
+    const tokenPayload = tokenResult.unwrap();
+
+    this.db.setAndSave((db) => {
+      if (db.userRefreshTokens.length === 1) {
+        db.userRefreshTokens.length = 0;
+      } else {
+        const index = db.userRefreshTokens.findIndex(({ userId }) => userId === tokenPayload.id);
+        if (index >= 0) {
+          const lastItem = db.userRefreshTokens.pop();
+          db.userRefreshTokens[index] = lastItem!;
+        }
+      }
+    });
+
+    const responsePayload: RefreshResponse = {
+      accessToken: await this.userService.createUserAccessToken(tokenPayload.id),
+      refreshToken: await this.userService.createUserRefreshToken(tokenPayload.id),
+    };
+
+    this.db.setAndSave((db) => {
+      db.userRefreshTokens.push({
+        userId: tokenPayload.id,
+        token: responsePayload.refreshToken,
+      });
+    });
+
+    return Content(responsePayload);
   }
 }
