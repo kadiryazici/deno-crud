@@ -1,6 +1,6 @@
-import { Controller, Post, Body, UseHook, Content, ActionResult } from 'alosaur';
+import { Controller, Post, Body, UseHook, Content, ActionResult, Get, Ctx, type HttpContext } from 'alosaur';
 import { ErrorCodes, SuccessCodes } from '@/common/constants.ts';
-import { SuccessResponse, TransformValue, ErrorResponse, LoginResponse, RefreshResponse, RefreshPayload } from 'types';
+import { SuccessResponse, TransformValue, ErrorResponse, UserApi } from 'types';
 import { getUTCNow, getFixedUsername } from 'helpers';
 import { nanoid } from 'nanoid';
 import { Length, IsString, IsJWT } from 'class-validator';
@@ -9,13 +9,9 @@ import { Validate } from '@/hooks/validate.ts';
 import { HttpStatusCode } from '@/common/httpCode.ts';
 import { DatabaseService } from '@/services/database.service.ts';
 import { UserService } from '@/services/user.service.ts';
+import { Auth, AuthHookState } from '@/hooks/auth.hook.ts';
 
-interface AuthBody {
-  username: string;
-  password: string;
-}
-
-class SignupBodyModel implements AuthBody {
+class SignupBodyModel implements UserApi.AuthBody {
   @Length(4, 24)
   @IsString()
   @Transform(({ value }: TransformValue<string>) => getFixedUsername(value))
@@ -26,7 +22,7 @@ class SignupBodyModel implements AuthBody {
   password!: string;
 }
 
-class LoginBodyModel implements AuthBody {
+class LoginBodyModel implements UserApi.AuthBody {
   @Length(4, 24)
   @IsString()
   public username!: string;
@@ -36,7 +32,7 @@ class LoginBodyModel implements AuthBody {
   public password!: string;
 }
 
-class RefreshBodyModel implements RefreshPayload {
+class RefreshBodyModel implements UserApi.RefreshPayload {
   @IsString()
   @IsJWT()
   token!: string;
@@ -49,9 +45,34 @@ export class UserController {
     private db: DatabaseService,
   ) {}
 
+  @Get('/me')
+  @UseHook(Auth)
+  public me(@Ctx() context: HttpContext<AuthHookState>): ActionResult {
+    const state = context.state!;
+    const userOption = this.userService.getUserByValue('id', state.userId);
+
+    if (userOption.isNone()) {
+      return Content(
+        {
+          code: ErrorCodes.UserNotFound,
+          errors: [],
+          success: false,
+        } as ErrorResponse,
+        HttpStatusCode.NOT_FOUND,
+      );
+    }
+
+    const user = userOption.unwrap();
+
+    return Content({
+      id: user.id,
+      username: user.username,
+    } as UserApi.MeResponse);
+  }
+
   @Post('/signup')
   @UseHook(Validate, { instance: SignupBodyModel })
-  public signup(@Body(SignupBodyModel) body: AuthBody): ActionResult {
+  public signup(@Body(SignupBodyModel) body: UserApi.AuthBody): ActionResult {
     if (this.userService.getUserByValue('username', body.username).isSome()) {
       return Content(
         {
@@ -85,7 +106,7 @@ export class UserController {
 
   @Post('/login')
   @UseHook(Validate, { instance: LoginBodyModel, transform: false })
-  public async login(@Body() body: AuthBody): Promise<ActionResult> {
+  public async login(@Body() body: UserApi.AuthBody): Promise<ActionResult> {
     const foundUser = this.userService.getUserByValue('username', body.username);
 
     if (foundUser.isNone()) {
@@ -101,7 +122,7 @@ export class UserController {
 
     const user = foundUser.unwrap();
 
-    const responseData: LoginResponse = {
+    const responseData: UserApi.LoginResponse = {
       accessToken: await this.userService.createUserAccessToken(user.id),
       refreshToken: await this.userService.createUserRefreshToken(user.id),
       id: user.id,
@@ -159,7 +180,7 @@ export class UserController {
       }
     });
 
-    const responsePayload: RefreshResponse = {
+    const responsePayload: UserApi.RefreshResponse = {
       accessToken: await this.userService.createUserAccessToken(tokenPayload.id),
       refreshToken: await this.userService.createUserRefreshToken(tokenPayload.id),
     };
