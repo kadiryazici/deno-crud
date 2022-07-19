@@ -9,6 +9,7 @@ export enum ErrorCodes {
   ValidationError = 'ValidationError',
   UserAlreadyExists = 'UserAlreadyExists',
   WrongUsernameOrPassword = 'WrongUsernameOrPassword',
+  UserNotFound = 'UserNotFound',
   InvalidToken = 'InvalidToken',
   MissingToken = 'MissingToken',
 }

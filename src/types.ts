@@ -45,13 +45,6 @@ export interface ErrorResponse {
   errors: unknown[];
 }
 
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  id: string;
-  username: string;
-}
-
 export interface TokenPayload extends Payload {
   id: string;
 }
@@ -64,17 +57,37 @@ export interface AppConfig {
   refreshTokenExpireTime: number; // second
 }
 
-export interface RefreshPayload {
-  token: string;
-}
-export interface RefreshResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface IDatabase {
   users: User[];
   comments: Comment[];
   questions: Question[];
   userRefreshTokens: UserRefreshToken[];
+}
+
+export declare namespace UserApi {
+  export interface AuthBody {
+    username: string;
+    password: string;
+  }
+
+  export interface RefreshResponse {
+    accessToken: string;
+    refreshToken: string;
+  }
+
+  export interface RefreshPayload {
+    token: string;
+  }
+
+  export interface LoginResponse {
+    accessToken: string;
+    refreshToken: string;
+    id: string;
+    username: string;
+  }
+
+  export interface MeResponse {
+    id: string;
+    username: string;
+  }
 }
