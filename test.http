@@ -9,7 +9,7 @@ Content-Type: application/json
 ###
 
 Get http://localhost:4000/user/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ikt2b0NZdGV5RXMwaExlSnBoSFRoLSIsImV4cCI6MTY1ODI3MzU1OX0.UPa8J0oeXeQ_pJjViXRihd3fiM73_-HCiYDR1rEffXY
+Authorization: Bearer {{ token }}
 
 ###
 
