@@ -5,13 +5,24 @@ import { create, getNumericDate, verify } from 'djwt';
 import { User, TokenPayload } from 'types';
 import { ErrorCodes } from '@/common/constants.ts';
 import { DatabaseService } from './database.service.ts';
-import { AutoInjectable } from 'alosaur';
+import { AutoInjectable, Singleton } from 'alosaur';
 
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.0/mod.ts';
+
+@Singleton()
 @AutoInjectable()
 export class UserService {
-  private tokenStart = 'Bearer ';
+  private tokenPrefix = 'Bearer ';
 
   constructor(private db?: DatabaseService) {}
+
+  public hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password);
+  }
+
+  public comparePassword(plain: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(plain, hash);
+  }
 
   public createUserAccessToken(id: string): Promise<string> {
     return create(
@@ -27,7 +38,7 @@ export class UserService {
   public async verifyUserAccessToken(token: string): Promise<Result<TokenPayload, ErrorCodes.InvalidToken>> {
     try {
       const payload = (await verify(
-        token.slice(this.tokenStart.length), //
+        token.slice(this.tokenPrefix.length), //
         appConfig.accessTokenSecret,
         'HS256',
       )) as TokenPayload;

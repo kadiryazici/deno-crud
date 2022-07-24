@@ -10,6 +10,7 @@ import { HttpStatusCode } from '@/common/httpCode.ts';
 import { DatabaseService } from '@/services/database.service.ts';
 import { UserService } from '@/services/user.service.ts';
 import { Auth, AuthHookState } from '@/hooks/auth.hook.ts';
+import { match } from 'oxide.ts';
 
 class SignupBodyModel implements UserApi.AuthBody {
   @Length(4, 24)
@@ -51,28 +52,23 @@ export class UserController {
     const state = context.state!;
     const userOption = this.userService.getUserByValue('id', state.userId);
 
-    if (userOption.isNone()) {
-      return Content(
-        {
-          code: ErrorCodes.UserNotFound,
-          errors: [],
-          success: false,
-        } as ErrorResponse,
-        HttpStatusCode.NOT_FOUND,
-      );
-    }
-
-    const user = userOption.unwrap();
-
-    return Content({
-      id: user.id,
-      username: user.username,
-    } as UserApi.MeResponse);
+    return match(userOption, {
+      Some: (user) => Content({ id: user.id, username: user.username } as UserApi.MeResponse),
+      None: () =>
+        Content(
+          {
+            code: ErrorCodes.UserNotFound,
+            errors: [],
+            success: false,
+          } as ErrorResponse,
+          HttpStatusCode.NOT_FOUND,
+        ),
+    });
   }
 
   @Post('/signup')
   @UseHook(Validate, { instance: SignupBodyModel })
-  public signup(@Body(SignupBodyModel) body: UserApi.AuthBody): ActionResult {
+  public async signup(@Body(SignupBodyModel) body: UserApi.AuthBody): Promise<ActionResult> {
     if (this.userService.getUserByValue('username', body.username).isSome()) {
       return Content(
         {
@@ -85,12 +81,13 @@ export class UserController {
     }
 
     const now = getUTCNow();
+    const password = await this.userService.hashPassword(body.password);
 
     this.db.save((db) => {
       db.users.push({
         creationDate: now,
         id: nanoid(),
-        password: body.password,
+        password: password,
         username: body.username,
       });
     });
@@ -104,23 +101,30 @@ export class UserController {
     );
   }
 
+  private LoginErrorResponse = Content(
+    {
+      code: ErrorCodes.WrongUsernameOrPassword,
+      errors: [],
+      success: false,
+    } as ErrorResponse,
+    HttpStatusCode.NOT_FOUND,
+  );
+
   @Post('/login')
   @UseHook(Validate, { instance: LoginBodyModel, transform: false })
   public async login(@Body() body: UserApi.AuthBody): Promise<ActionResult> {
     const foundUser = this.userService.getUserByValue('username', body.username);
 
     if (foundUser.isNone()) {
-      return Content(
-        {
-          code: ErrorCodes.WrongUsernameOrPassword,
-          errors: [],
-          success: false,
-        } as ErrorResponse,
-        HttpStatusCode.NOT_FOUND,
-      );
+      return this.LoginErrorResponse;
     }
 
     const user = foundUser.unwrap();
+
+    const validPassword = await this.userService.comparePassword(body.password, user.password);
+    if (!validPassword) {
+      return this.LoginErrorResponse;
+    }
 
     const responseData: UserApi.LoginResponse = {
       accessToken: await this.userService.createUserAccessToken(user.id),

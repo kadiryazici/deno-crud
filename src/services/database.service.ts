@@ -4,6 +4,7 @@ import { fileExistsSync, getRoot } from 'helpers';
 
 import { IDatabase } from 'types';
 import { NOOP } from '@/common/constants.ts';
+import { Singleton } from 'alosaur';
 
 // deno-lint-ignore no-explicit-any
 const defaults: Record<keyof IDatabase, () => any> = {
@@ -13,6 +14,7 @@ const defaults: Record<keyof IDatabase, () => any> = {
   userRefreshTokens: () => [],
 };
 
+@Singleton()
 export class DatabaseService {
   private static current = {} as IDatabase;
   private static saveTimeout = -1;
@@ -29,14 +31,14 @@ export class DatabaseService {
     });
   }
 
-  private static getFixed(db: IDatabase) {
-    const requiredDb = { ...db } as IDatabase;
+  private static cloneWithDefaults(db: IDatabase) {
+    const clone = { ...db } as IDatabase;
 
     for (const key of Object.keys(defaults)) {
-      requiredDb[key as keyof IDatabase] ||= defaults[key as keyof IDatabase]();
+      clone[key as keyof IDatabase] ||= defaults[key as keyof IDatabase]();
     }
 
-    return requiredDb;
+    return clone;
   }
 
   public static init() {
@@ -50,9 +52,9 @@ export class DatabaseService {
     const dbText = Deno.readTextFileSync(path.join(DatabaseService.root, 'db.json'));
 
     try {
-      DatabaseService.current = DatabaseService.getFixed(JSON.parse(dbText) as IDatabase);
+      DatabaseService.current = DatabaseService.cloneWithDefaults(JSON.parse(dbText) as IDatabase);
     } catch {
-      DatabaseService.current = DatabaseService.getFixed({} as IDatabase);
+      DatabaseService.current = DatabaseService.cloneWithDefaults({} as IDatabase);
     }
   }
 

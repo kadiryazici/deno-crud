@@ -18,7 +18,7 @@ export default function () {
         appConfig[key] = payload[key];
       }
     } catch {
-      console.log('Config file was invalid json, using default config.');
+      console.log('Config file was not a valid json file, continuing default configs.');
     }
   } else {
     Deno.writeTextFileSync(configPath, JSON.stringify(appConfig, undefined, 2));

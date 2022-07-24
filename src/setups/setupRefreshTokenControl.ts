@@ -3,52 +3,42 @@ import { DatabaseService } from '@/services/database.service.ts';
 import { Mutex } from 'https://cdn.skypack.dev/async-mutex?dts';
 import { UserService } from '@/services/user.service.ts';
 import { cron } from 'deno-cron';
+import pMap from 'https://cdn.skypack.dev/p-map?dts';
 
 // const dbService = new DatabaseService();
 // const userService = new UserService();
 
 @AutoInjectable()
-class RefreshTokenControlSetup {
+class ExpiredRefreshTokenCleanerJob {
   private mutex = new Mutex();
   constructor(private user?: UserService, private db?: DatabaseService) {}
 
-  public run() {
-    const willBeRemovedTokens: string[] = [];
-    const promises: Promise<void>[] = [];
+  public async run() {
+    const expiredTokens: string[] = [];
+    const db = this.db!.value();
 
-    this.db?.set((db) =>
-      this.mutex.runExclusive(async () => {
-        for (const { token } of db.userRefreshTokens) {
-          promises.push(
-            new Promise((resolve) => {
-              this.user?.verifyUserRefreshToken(token).then((result) => {
-                if (result.isOk()) resolve();
-                else {
-                  willBeRemovedTokens.push(token);
-                  resolve();
-                }
-              });
-            }),
-          );
+    await pMap(
+      db.userRefreshTokens,
+      async ({ token }) => {
+        const result = await this.user!.verifyUserRefreshToken(token);
+        if (result?.isErr()) {
+          expiredTokens.push(token);
         }
-
-        await Promise.all(promises);
-      }),
+      },
+      { concurrency: 10 },
     );
 
-    this.db?.save((db) =>
-      this.mutex.runExclusive(() => {
-        db.userRefreshTokens = db.userRefreshTokens.filter((item) => !willBeRemovedTokens.includes(item.token));
-      }),
-    );
+    this.db?.save((db) => {
+      db.userRefreshTokens = db.userRefreshTokens.filter((item) => !expiredTokens.includes(item.token));
+    });
   }
 }
 
 export default function () {
-  const setup = new RefreshTokenControlSetup();
+  const job = new ExpiredRefreshTokenCleanerJob();
 
   cron(`1 */10 * * * *`, () => {
     console.log('Job running: RefreshTokenControl');
-    setup.run();
+    job.run();
   });
 }

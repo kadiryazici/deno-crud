@@ -1,6 +1,7 @@
 {
   "imports": {
     "path": "https://deno.land/std@0.143.0/path/mod.ts",
+    "p-map": "https://cdn.skypack.dev/p-map?dts",
     "alosaur": "https://deno.land/x/alosaur@v0.33.0/mod.ts",
     "nanoid": "https://deno.land/x/nanoid@v3.0.0/mod.ts",
     "class-validator": "https://cdn.skypack.dev/class-validator@0.13.2?dts",
